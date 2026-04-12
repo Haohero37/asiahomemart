@@ -14,13 +14,16 @@ export default defineConfig(({ mode }) => {
       VitePWA({
         registerType: 'autoUpdate',
         includeAssets: ['icon.svg'],
+        devOptions: {
+          enabled: true
+        },
         manifest: {
           name: 'Asia Home Mart',
           short_name: 'AsiaMart',
           description: 'Phần mềm quản lý hóa đơn Asia Home Mart',
           theme_color: '#dc2626',
           background_color: '#ffffff',
-          display: 'standalone', // Makes it open full screen
+          display: 'fullscreen', // Makes it open full screen (hides all OS UI if possible)
           orientation: 'portrait',
           icons: [
             {
