@@ -39,11 +39,11 @@ export function Modal({ title, onClose, children, size = 'md' }: ModalProps) {
     >
       <div className={`bg-white rounded-2xl shadow-2xl w-full ${sizeClasses[size]} animate-scale-in max-h-[90vh] flex flex-col`}>
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 shrink-0">
-          <h2 className="text-lg font-semibold text-gray-800">{title}</h2>
+        <div className="flex items-center justify-between px-5 md:px-6 py-4 border-b border-gray-100 shrink-0 gap-3">
+          <h2 className="text-base md:text-lg font-semibold text-gray-800 truncate" title={title}>{title}</h2>
           <button
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all"
+            className="w-8 h-8 shrink-0 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all"
           >
             <X className="w-5 h-5" />
           </button>

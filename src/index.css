@@ -19,6 +19,13 @@
     min-height: 100vh;
   }
 
+  /* Prevent iOS auto-zoom on input focus */
+  @media screen and (max-width: 768px) {
+    input, textarea, select {
+      font-size: 16px !important;
+    }
+  }
+
   ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
