@@ -51,7 +51,7 @@ function formatAmount(amount: number, currency: string): string {
 /**
  * Export invoice to A7 PDF using html2canvas + jsPDF
  */
-export async function exportInvoiceToPDF(data: InvoiceData, autoPrint = false): Promise<void> {
+export async function exportInvoiceToPDF(data: InvoiceData, autoPrint = false, printWindow?: Window | null): Promise<void> {
   // 1. Create a hidden div for the template
   const container = document.createElement('div');
   container.style.position = 'fixed';
@@ -181,7 +181,12 @@ export async function exportInvoiceToPDF(data: InvoiceData, autoPrint = false): 
     // 5. Action
     if (autoPrint) {
       pdf.autoPrint();
-      window.open(pdf.output('bloburl'), '_blank');
+      const blobUrl = pdf.output('bloburl');
+      if (printWindow) {
+        printWindow.location.href = blobUrl.toString();
+      } else {
+        window.open(blobUrl, '_blank');
+      }
     } else {
       const safeCustomerName = removeAccents(data.customer.name).replace(/\s+/g, '');
       const filename = `${data.invoiceNumber}_${safeCustomerName}.pdf`;

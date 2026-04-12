@@ -201,6 +201,15 @@ export function InvoiceForm({ onSuccess, onError, showToast, onInvoiceCreated }:
       showToast('Số lượng sản phẩm không hợp lệ', 'error');
       return;
     }
+
+    // Mở popup ngay lúc click để tránh trình duyệt chặn
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write('<div style="font-family: sans-serif; padding: 20px; text-align: center;">Đang tạo hóa đơn. Vui lòng đợi...</div>');
+    } else {
+      showToast('Vui lòng cho phép mở popup để có thể in', 'warning');
+    }
+
     setSaving(true);
     try {
       const createdInvoice = await createInvoice(
@@ -231,7 +240,7 @@ export function InvoiceForm({ onSuccess, onError, showToast, onInvoiceCreated }:
         paymentMethod: "Thu hộ (COD)",
         currency: "₩",
         thankYouMessage: "Cảm ơn quý khách!\nHẹn gặp lại"
-      }, true); // true opens auto print pdf
+      }, true, printWindow); // true opens auto print pdf
       
       showToast('Đã lưu và mở lệnh in!', 'success');
       

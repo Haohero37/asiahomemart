@@ -72,6 +72,16 @@ export function InvoiceList({ showToast, onNewInvoice, expandInvoiceId }: Invoic
   };
 
   const handleExportPDF = async (inv: Invoice, autoPrint = false) => {
+    let printWindow: Window | null = null;
+    if (autoPrint) {
+      printWindow = window.open('', '_blank');
+      if (printWindow) {
+        printWindow.document.write('<div style="font-family: sans-serif; padding: 20px; text-align: center;">Đang tạo hóa đơn. Vui lòng đợi...</div>');
+      } else {
+        showToast('Vui lòng cho phép mở popup để có thể in', 'warning');
+      }
+    }
+
     try {
       await exportInvoiceToPDF({
         shopName: "Asia Home Mart",
@@ -96,7 +106,7 @@ export function InvoiceList({ showToast, onNewInvoice, expandInvoiceId }: Invoic
         paymentMethod: "Thu hộ (COD)",
         currency: "₩",
         thankYouMessage: "Cảm ơn quý khách!\nHẹn gặp lại"
-      }, autoPrint);
+      }, autoPrint, printWindow);
       if (!autoPrint) showToast('Đã xuất PDF thành công!', 'success');
     } catch {
       showToast(autoPrint ? 'Lỗi khi in hóa đơn' : 'Lỗi khi xuất PDF', 'error');
@@ -173,67 +183,92 @@ export function InvoiceList({ showToast, onNewInvoice, expandInvoiceId }: Invoic
             {filtered.map(inv => (
               <React.Fragment key={inv.id}>
                 <div
-                  className="grid grid-cols-12 items-center px-5 py-4 hover:bg-gray-50 transition-colors cursor-pointer"
+                  className="flex flex-col md:grid md:grid-cols-12 md:items-center px-4 py-4 md:px-5 hover:bg-gray-50 transition-colors cursor-pointer gap-3 md:gap-0"
                   onClick={() => setViewInvoice(inv)}
                 >
-                  <div className="col-span-5 md:col-span-3">
-                    <p className="text-sm font-semibold text-gray-800">{inv.invoice_number}</p>
-                    {inv.note && (
-                      <p className="text-xs text-gray-400 mt-0.5 truncate max-w-[160px]">{inv.note}</p>
-                    )}
+                  {/* Top mobile row: Invoice info & Total (Right) */}
+                  <div className="w-full md:col-span-3 flex justify-between md:block items-start">
+                    <div>
+                      <p className="text-sm font-semibold text-gray-800">{inv.invoice_number}</p>
+                      {inv.note && (
+                        <p className="text-xs text-gray-400 mt-0.5 truncate max-w-[200px] md:max-w-full">{inv.note}</p>
+                      )}
+                    </div>
+                    {/* Mobile Only: Total amount right aligned */}
+                    <div className="text-right md:hidden shrink-0">
+                      <p className="text-sm font-bold text-red-700">{formatCurrency(inv.total_amount)}</p>
+                      {inv.invoice_items && (
+                        <p className="text-xs text-gray-400">{inv.invoice_items.length} mặt hàng</p>
+                      )}
+                    </div>
                   </div>
-                  <div className="col-span-4 md:col-span-3">
+
+                  {/* Customer Info & Date (Mobile only) */}
+                  <div className="w-full md:col-span-3 flex justify-between md:block items-center">
                     {inv.customer ? (
                       <div className="flex items-center gap-1">
                         <User className="w-3.5 h-3.5 text-gray-400 shrink-0" />
-                        <p className="text-sm text-gray-700 truncate">{inv.customer.name}</p>
+                        <p className="text-sm text-gray-700 truncate max-w-[150px] md:max-w-full">{inv.customer.name}</p>
                       </div>
                     ) : (
                       <span className="text-xs text-gray-400 italic">Khách vãng lai</span>
                     )}
+                    
+                    {/* Mobile Only: Date right aligned */}
+                    <div className="flex md:hidden items-center gap-1 text-gray-500">
+                      <Calendar className="w-3.5 h-3.5 shrink-0" />
+                      <p className="text-xs">{formatDateTime(inv.created_at)}</p>
+                    </div>
                   </div>
+
+                  {/* Desktop Date */}
                   <div className="hidden md:flex col-span-2 items-center gap-1">
                     <Calendar className="w-3.5 h-3.5 text-gray-400 shrink-0" />
                     <p className="text-xs text-gray-500">{formatDateTime(inv.created_at)}</p>
                   </div>
-                  <div className="col-span-3 md:col-span-2 text-right">
+
+                  {/* Desktop Total Amount */}
+                  <div className="hidden md:block md:col-span-2 text-right">
                     <p className="text-sm font-bold text-red-700">{formatCurrency(inv.total_amount)}</p>
                     {inv.invoice_items && (
                       <p className="text-xs text-gray-400">{inv.invoice_items.length} mặt hàng</p>
                     )}
                   </div>
-                  <div className="hidden md:flex col-span-2 gap-1 justify-end">
+
+                  {/* Action Buttons */}
+                  <div className="flex md:col-span-2 gap-2 md:gap-1 justify-between md:justify-end w-full mt-2 md:mt-0 pt-3 md:pt-0 border-t md:border-0 border-gray-100">
                     <button
                       onClick={e => { e.stopPropagation(); handleExportPDF(inv); }}
-                      className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                      className="p-2 flex-1 md:flex-none text-gray-500 md:text-gray-400 hover:text-red-600 flex items-center justify-center bg-gray-50 md:bg-transparent hover:bg-red-50 rounded-lg transition-all border border-gray-100 md:border-transparent"
                       title="Xuất PDF"
                     >
-                      <FileDown className="w-4 h-4" />
+                      <FileDown className="w-4 h-4 md:w-4 md:h-4 shrink-0" />
+                      <span className="text-[11px] font-medium ml-1.5 md:hidden">Xuất</span>
                     </button>
                     <button
                       onClick={e => { e.stopPropagation(); handlePrint(inv); }}
-                      className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                      className="p-2 flex-1 md:flex-none text-gray-500 md:text-gray-400 hover:text-blue-600 flex items-center justify-center bg-gray-50 md:bg-transparent hover:bg-blue-50 rounded-lg transition-all border border-gray-100 md:border-transparent"
                       title="In hóa đơn"
                     >
-                      <Printer className="w-4 h-4" />
+                      <Printer className="w-4 h-4 md:w-4 md:h-4 shrink-0" />
+                      <span className="text-[11px] font-medium ml-1.5 md:hidden">In</span>
                     </button>
                     <button
                       onClick={e => { e.stopPropagation(); setViewInvoice(inv); }}
-                      className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all"
+                      className="p-2 flex-1 md:flex-none text-gray-500 md:text-gray-400 hover:text-emerald-600 flex items-center justify-center bg-gray-50 md:bg-transparent hover:bg-emerald-50 rounded-lg transition-all border border-gray-100 md:border-transparent"
                       title="Xem chi tiết"
                     >
-                      <Eye className="w-4 h-4" />
+                      <Eye className="w-4 h-4 md:w-4 md:h-4 shrink-0" />
+                      <span className="text-[11px] font-medium ml-1.5 md:hidden">Xem</span>
                     </button>
                     <button
                       onClick={e => { e.stopPropagation(); setDeleteId(inv.id); }}
-                      className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                      className="p-2 flex-1 md:flex-none text-gray-500 md:text-gray-400 hover:text-rose-600 flex items-center justify-center bg-gray-50 md:bg-transparent hover:bg-rose-50 rounded-lg transition-all border border-gray-100 md:border-transparent"
                       title="Xóa"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-4 h-4 md:w-4 md:h-4 shrink-0" />
+                      <span className="text-[11px] font-medium ml-1.5 md:hidden">Xóa</span>
                     </button>
-                  </div>
-                  <div className="col-span-0 md:hidden flex justify-end">
-                    <Eye className="w-4 h-4 text-gray-400" />
                   </div>
                 </div>
               </React.Fragment>
